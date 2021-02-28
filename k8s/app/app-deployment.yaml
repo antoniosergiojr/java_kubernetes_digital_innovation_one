@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: dev-to
+  labels:
+    app: myapp
+spec:
+  # numero de pods
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+      metadata:
+        labels:
+          app: myapp
+      spec:
+        containers:
+          - name: myapp
+            image: java-k8s:latest
+            imagePullPolicy: Never
+            ports:
+              - containerPort: 8080
+                name: http
+            envFrom:
+              #- secretRef:
+                  #name: secret
+              - configMapRef:
+                  name: myapp
+            livenessProbe:
+              httpGet:
+                # garante se a aplicacao esta ok  
+                path: /app/actuator/health/liveness
+                port: 8080
+              initialDelaySeconds: 30
+            readinessProbe:
+              httpGet:
+                # verifica se esta ok, se nao responder ok ele vai destruir esse pod e coloca outro no lugar  
+                path: /app/actuator/health/readiness
+                port: 8080
+              initialDelaySeconds: 30
